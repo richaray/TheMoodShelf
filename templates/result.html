@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>The MoodShelf | Your Recommendations</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Be+Vietnam+Pro:wght@400;500;700&family=Lexend:wght@400;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+
+    <style>
+        /* ─── Design Tokens (aligned with dashboard.html) ─── */
+        :root {
+            --primary:              #aa2c32;
+            --primary-dim:          #992027;
+            --primary-container:    #ff7574;
+            --on-primary:           #ffefee;
+            --secondary:            #006761;
+            --secondary-container:  #7cf6ec;
+            --on-secondary-container: #005c57;
+            --tertiary-container:   #fee56c;
+            --on-tertiary-container: #615300;
+            --background:           #f1f9f1;
+            --surface-container-lowest: #ffffff;
+            --surface-container-low:    #eaf3eb;
+            --surface-container:        #e1ebe2;
+            --surface-container-high:   #dae5dc;
+            --surface-variant:          #d4e0d6;
+            --on-surface:           #29302b;
+            --on-surface-variant:   #555d58;
+            --outline-variant:      #a7afa8;
+
+            --font-headline: 'Plus Jakarta Sans', sans-serif;
+            --font-body:     'Be Vietnam Pro', sans-serif;
+            --font-label:    'Lexend', sans-serif;
+
+            --radius-full: 9999px;
+            --shadow-sm:  4px 4px 0 0 var(--on-surface);
+            --shadow-md:  6px 6px 0 0 var(--on-surface);
+            --shadow-lg:  8px 8px 0 0 var(--on-surface);
+        }
+
+        /* ─── Reset ─── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            color: var(--on-surface);
+            background-color: var(--background);
+            background-image: radial-gradient(#29302b 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── Utilities ─── */
+        .wobbly {
+            border: 2px solid var(--on-surface);
+            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            box-shadow: var(--shadow-lg);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            line-height: 1;
+        }
+
+        /* ══════════════════════════════════════════════════
+           NAVBAR — identical structure & style to dashboard
+        ══════════════════════════════════════════════════ */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--background);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-bottom: 1.5px solid rgba(41,48,43,0.10);
+        }
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+        }
+        .navbar-brand {
+            font-family: var(--font-headline);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+            text-decoration: none;
+        }
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 1.75rem;
+            list-style: none;
+        }
+        .navbar-links a {
+            font-family: var(--font-label);
+            font-size: 0.875rem;
+            color: var(--on-surface);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .navbar-links a:hover { color: var(--primary); }
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            color: var(--on-surface);
+            font-size: 1.5rem;
+        }
+        .icon-btn:hover { background: var(--surface-variant); }
+        .logout-link {
+            font-family: var(--font-label);
+            font-size: 0.8rem;
+            color: var(--on-surface-variant);
+            text-decoration: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: var(--radius-full);
+            border: 1.5px solid var(--outline-variant);
+            transition: all 0.2s;
+        }
+        .logout-link:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* ══════════════════════════════════════════════════
+           MAIN
+        ══════════════════════════════════════════════════ */
+        main { max-width: 1200px; margin: 0 auto; padding: 56px 24px 80px; }
+
+        /* Page Header */
+        .page-header { margin-bottom: 52px; animation: fadeUp 0.4s ease both; }
+        .page-header h1 {
+            font-family: var(--font-headline);
+            font-weight: 800;
+            font-size: clamp(2rem, 5.5vw, 4rem);
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 12px;
+        }
+        .page-header h1 .mood-label { color: var(--primary); font-style: italic; }
+        .page-header p {
+            font-size: 1.05rem;
+            color: var(--on-surface-variant);
+            max-width: 560px;
+            line-height: 1.6;
+        }
+
+        /* ══════════════════════════════════════════════════
+           BENTO GRID
+        ══════════════════════════════════════════════════ */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* Shared card base */
+        .card {
+            background: var(--surface-container-lowest);
+            padding: 24px;
+            position: relative;
+            overflow: visible;
+            animation: fadeUp 0.45s ease both;
+        }
+
+        /* ── Card 1: Hero ── */
+        .card-hero { grid-column: span 8; transition: transform 0.2s; }
+        .card-hero:hover { transform: translateY(-5px); }
+
+        .best-match-tag {
+            position: absolute;
+            top: -13px;
+            right: 20px;
+            background: var(--tertiary-container);
+            color: var(--on-tertiary-container);
+            font-family: var(--font-label);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 5px 16px;
+            border-radius: var(--radius-full);
+            border: 2px solid var(--on-surface);
+            transform: rotate(3deg);
+            box-shadow: 2px 2px 0 var(--on-surface);
+            letter-spacing: 0.06em;
+        }
+        .hero-inner { display: flex; gap: 28px; }
+        .hero-img-wrap { flex: 0 0 30%; }
+        .hero-img-wrap img {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid var(--on-surface);
+            box-shadow: var(--shadow-sm);
+            transform: rotate(-1.2deg);
+            transition: transform 0.3s;
+            display: block;
+        }
+        .card-hero:hover .hero-img-wrap img { transform: rotate(0deg); }
+        .hero-body { display: flex; flex-direction: column; justify-content: space-between; flex: 1; }
+
+        /* badges */
+        .badge-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .badge {
+            font-family: var(--font-label);
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 4px 11px;
+            border-radius: var(--radius-full);
+            border: 1.5px solid var(--on-surface);
+        }
+        .badge-primary { background: var(--primary); color: var(--on-primary); }
+        .badge-match   { background: transparent; color: var(--secondary); border-color: transparent; font-size: 0.78rem; }
+
+        .book-title {
+            font-family: var(--font-headline);
+            font-weight: 800;
+            font-size: 1.9rem;
+            line-height: 1.15;
+            margin-bottom: 4px;
+        }
+        .book-author { font-size: 0.95rem; color: var(--on-surface-variant); margin-bottom: 12px; }
+        .stars-row   { font-family: var(--font-label); font-size: 0.8rem; color: var(--on-surface-variant); margin-bottom: 14px; }
+        .book-desc {
+            font-size: 0.875rem;
+            color: var(--on-surface-variant);
+            line-height: 1.65;
+            margin-bottom: 20px;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* ── Save Buttons ── */
+        .save-form { width: 100%; margin-top: auto; }
+
+        /* Hero save button */
+        .btn-save-hero {
+            font-family: var(--font-label);
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 12px 32px;
+            border-radius: var(--radius-full);
+            border: 2px solid var(--on-surface);
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--primary), var(--primary-container));
+            color: var(--on-primary);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.12s, box-shadow 0.12s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-save-hero:hover  { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-save-hero:active { transform: translateY(1px);  box-shadow: none; }
+
+        /* Card save button (full-width) */
+        .btn-save {
+            font-family: var(--font-label);
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 10px 16px;
+            border-radius: var(--radius-full);
+            border: 2px solid var(--on-surface);
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--primary), var(--primary-container));
+            color: var(--on-primary);
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.12s, box-shadow 0.12s;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn-save:hover  { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-save:active { transform: translateY(1px);  box-shadow: none; }
+
+        /* Already saved state */
+        .btn-saved {
+            font-family: var(--font-label);
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 10px 16px;
+            border-radius: var(--radius-full);
+            border: 2px solid var(--on-surface);
+            background: var(--secondary-container);
+            color: var(--on-secondary-container);
+            width: 100%;
+            text-align: center;
+            display: block;
+            cursor: default;
+        }
+        .btn-saved-hero {
+            font-family: var(--font-label);
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 12px 32px;
+            border-radius: var(--radius-full);
+            border: 2px solid var(--on-surface);
+            background: var(--secondary-container);
+            color: var(--on-secondary-container);
+            cursor: default;
+        }
+
+        /* ── Cards 2–5 ── */
+        .card-2 {
+            grid-column: span 4;
+            background: var(--secondary-container);
+            transform: rotate(1deg);
+            transition: transform 0.2s;
+            display: flex; flex-direction: column;
+        }
+        .card-3 {
+            grid-column: span 4;
+            background: var(--surface-container-high);
+            transform: rotate(-1deg);
+            transition: transform 0.2s;
+            display: flex; flex-direction: column;
+        }
+        .card-4 {
+            grid-column: span 4;
+            background: var(--tertiary-container);
+            transform: rotate(2deg);
+            transition: transform 0.2s;
+            display: flex; flex-direction: column;
+        }
+        .card-5 {
+            grid-column: span 4;
+            background: var(--surface-container-lowest);
+            transform: rotate(-1.5deg);
+            transition: transform 0.2s;
+            display: flex; flex-direction: column;
+            border-style: dashed !important;
+        }
+        .card-extra {
+            grid-column: span 4;
+            background: var(--surface-container);
+            transition: transform 0.2s;
+            display: flex; flex-direction: column;
+        }
+        .card-2:hover,
+        .card-3:hover,
+        .card-4:hover,
+        .card-5:hover,
+        .card-extra:hover { transform: rotate(0deg) translateY(-3px); }
+
+        /* Card inner parts */
+        .card-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .rank-pill {
+            font-family: var(--font-label);
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: var(--surface-container-lowest);
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            border: 1.5px solid var(--on-surface);
+        }
+        .match-text         { font-family: var(--font-label); font-size: 0.78rem; font-weight: 600; color: var(--secondary); }
+        .match-text.warm    { color: var(--primary-dim); }
+        .match-text.gold    { color: #6a5b00; }
+
+        .img-tall {
+            width: 100%; aspect-ratio: 4/5; object-fit: cover;
+            border-radius: 10px; border: 2px solid var(--on-surface);
+            box-shadow: 3px 3px 0 var(--on-surface); margin-bottom: 16px; display: block;
+        }
+        .img-sq {
+            width: 100%; height: 170px; object-fit: cover;
+            border-radius: 8px; border: 2px solid var(--on-surface);
+            box-shadow: 3px 3px 0 var(--on-surface); margin-bottom: 12px; display: block;
+        }
+        .img-sq-grey {
+            width: 100%; height: 170px; object-fit: cover;
+            border-radius: 8px; border: 2px solid var(--on-surface);
+            box-shadow: 3px 3px 0 var(--on-surface); margin-bottom: 12px; display: block;
+            filter: grayscale(1); transition: filter 0.4s;
+        }
+        .img-sq-grey:hover { filter: grayscale(0); }
+
+        .card-title { font-family: var(--font-headline); font-weight: 700; font-size: 1.1rem; margin-bottom: 3px; line-height: 1.25; }
+        .card-author { font-family: var(--font-label); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--on-surface-variant); margin-bottom: 8px; }
+        .card-desc {
+            font-size: 0.8rem; color: var(--on-surface-variant); line-height: 1.55;
+            margin-bottom: 14px; flex-grow: 1;
+            display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        /* ══════════════════════════════════════════════════
+           ACTIONS
+        ══════════════════════════════════════════════════ */
+        .more-section { margin-top: 64px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .more-divider { width: 100%; height: 2px; background: var(--on-surface); border-radius: var(--radius-full); opacity: 0.08; }
+        .dot-nav { display: flex; gap: 12px; }
+        .dot-nav span { width: 12px; height: 12px; border-radius: var(--radius-full); border: 2px solid var(--on-surface); display: block; }
+        .d1 { background: var(--primary); }
+        .d2 { background: var(--secondary-container); }
+        .d3 { background: var(--tertiary-container); }
+
+        .more-actions { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+        .btn-action {
+            font-family: var(--font-label);
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 11px 28px;
+            border-radius: var(--radius-full);
+            border: 2px solid var(--on-surface);
+            text-decoration: none;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--on-surface);
+            background: none;
+        }
+        .btn-action-primary { background: var(--primary); color: var(--on-primary); box-shadow: var(--shadow-sm); }
+        .btn-action-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-action-ghost { background: var(--surface-container-lowest); }
+        .btn-action-ghost:hover { background: var(--surface-container-low); }
+
+        /* ══════════════════════════════════════════════════
+           FOOTER — matches dashboard.html
+        ══════════════════════════════════════════════════ */
+        .footer {
+            background: var(--surface-container-low);
+            border-top: 1.5px solid rgba(41,48,43,0.10);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 32px;
+        }
+        .footer-brand { font-family: var(--font-headline); font-weight: 700; font-size: 1.1rem; color: var(--on-surface); }
+        .footer-copy  { font-family: var(--font-label); font-size: 0.75rem; color: var(--on-surface-variant); margin-top: 4px; }
+        .footer-links { display: flex; gap: 2rem; list-style: none; }
+        .footer-links a { font-family: var(--font-label); font-size: 0.8rem; color: var(--on-surface-variant); text-decoration: none; transition: color 0.2s; }
+        .footer-links a:hover { color: var(--primary); }
+
+        /* ══════════════════════════════════════════════════
+           FAB — matches dashboard.html
+        ══════════════════════════════════════════════════ */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 40;
+            width: 3.75rem;
+            height: 3.75rem;
+            border-radius: var(--radius-full);
+            background: var(--primary);
+            border: 2px solid var(--on-surface);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--on-primary);
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .fab:hover { transform: scale(1.08); box-shadow: var(--shadow-md); }
+        .fab .material-symbols-outlined { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+        /* ── Animations ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .card-hero  { animation-delay: 0.05s; }
+        .card-2     { animation-delay: 0.10s; }
+        .card-3     { animation-delay: 0.15s; }
+        .card-4     { animation-delay: 0.20s; }
+        .card-5     { animation-delay: 0.25s; }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .bento-grid { grid-template-columns: 1fr 1fr; }
+            .card-hero  { grid-column: span 2; }
+            .hero-inner { flex-direction: column; }
+            .hero-img-wrap { flex: none; max-width: 180px; }
+            .card-2, .card-3, .card-4, .card-5, .card-extra { grid-column: span 1; }
+        }
+        @media (max-width: 600px) {
+            .bento-grid { grid-template-columns: 1fr; }
+            .card-hero, .card-2, .card-3, .card-4, .card-5, .card-extra { grid-column: span 1; transform: none !important; }
+            .navbar-links { display: none; }
+            .footer { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     NAVBAR — identical to dashboard.html
+══════════════════════════════════════════════════ -->
+<nav class="navbar">
+    <div class="navbar-left">
+        <a href="/dashboard" class="navbar-brand">MoodShelf</a>
+        <ul class="navbar-links">
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/analytics">Analytics</a></li>
+            <li><a href="/journal">Journal</a></li>
+            <li><a href="/saved-books">Saved</a></li>
+        </ul>
+    </div>
+    <div class="navbar-right">
+        <button class="icon-btn" aria-label="Profile">
+            <span class="material-symbols-outlined">account_circle</span>
+        </button>
+        <a href="/logout" class="logout-link">Logout</a>
+    </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════
+     MAIN
+══════════════════════════════════════════════════ -->
+<main>
+
+    <header class="page-header">
+        <h1>Detected Mood: <span class="mood-label">{{ mood.capitalize() }} {{ mood_emoji }}</span></h1>
+        <p>Here are your top book picks, matched to how you're feeling right now.</p>
+    </header>
+
+    <div class="bento-grid">
+
+        {% for book in books %}
+
+        {# ── CARD 1: Hero (8 cols) ── #}
+        {% if loop.index == 1 %}
+        <div class="card card-hero wobbly">
+            <span class="best-match-tag">BEST MATCH</span>
+            <div class="hero-inner">
+                <div class="hero-img-wrap">
+                    <img src="{{ book.image_url }}" alt="{{ book.title }} cover">
+                </div>
+                <div class="hero-body">
+                    <div>
+                        <div class="badge-row">
+                            <span class="badge badge-primary">#1 Recommendation</span>
+                            {% if book.similarity is defined %}
+                            <span class="badge badge-match">{{ book.similarity }}% Match</span>
+                            {% endif %}
+                        </div>
+                        <h2 class="book-title">{{ book.title }}</h2>
+                        <p class="book-author">{{ book.author }}</p>
+                        <p class="stars-row">⭐ {{ book.stars }} &nbsp;·&nbsp; {{ book.num_reviews }} reviews</p>
+                        <p class="book-desc">{{ book.description }}</p>
+                    </div>
+                    {% if book.title in saved_titles %}
+                        <button class="btn-saved-hero" disabled>✔ Saved to Shelf</button>
+                    {% else %}
+                        <form action="/save" method="POST">
+                            <input type="hidden" name="title"     value="{{ book.title }}">
+                            <input type="hidden" name="author"    value="{{ book.author }}">
+                            <input type="hidden" name="mood"      value="{{ mood }}">
+                            <input type="hidden" name="genre"     value="{{ book.genre }}">
+                            <input type="hidden" name="image_url" value="{{ book.image_url }}">
+                            <button type="submit" class="btn-save-hero">
+                                <span class="material-symbols-outlined" style="font-size:1rem; font-variation-settings:'FILL' 1;">bookmark_add</span>
+                                Save to Shelf
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# ── CARD 2: Tall vertical (4 cols) ── #}
+        {% elif loop.index == 2 %}
+        <div class="card card-2 wobbly">
+            <div class="card-header-row">
+                <span class="rank-pill">#2</span>
+                {% if book.similarity is defined %}<span class="match-text">{{ book.similarity }}% Match</span>{% endif %}
+            </div>
+            <img class="img-tall" src="{{ book.image_url }}" alt="{{ book.title }} cover">
+            <h3 class="card-title">{{ book.title }}</h3>
+            <p class="card-author">{{ book.author }}</p>
+            <p class="card-desc">{{ book.description }}</p>
+            {% if book.title in saved_titles %}
+                <button class="btn-saved" disabled>✔ Saved to Shelf</button>
+            {% else %}
+                <form class="save-form" action="/save" method="POST">
+                    <input type="hidden" name="title"  value="{{ book.title }}">
+                    <input type="hidden" name="author" value="{{ book.author }}">
+                    <input type="hidden" name="mood"   value="{{ mood }}">
+                    <input type="hidden" name="genre"     value="{{ book.genre }}">
+                    <input type="hidden" name="image_url" value="{{ book.image_url }}">
+                    <button type="submit" class="btn-save">
+                        <span class="material-symbols-outlined" style="font-size:0.9rem; font-variation-settings:'FILL' 1;">bookmark_add</span>
+                        Save to Shelf
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        {# ── CARD 3 ── #}
+        {% elif loop.index == 3 %}
+        <div class="card card-3 wobbly">
+            <div class="card-header-row">
+                <span class="rank-pill">#3</span>
+                {% if book.similarity is defined %}<span class="match-text warm">{{ book.similarity }}% Match</span>{% endif %}
+            </div>
+            <img class="img-sq" src="{{ book.image_url }}" alt="{{ book.title }} cover">
+            <h4 class="card-title">{{ book.title }}</h4>
+            <p class="card-author">{{ book.author }}</p>
+            <p class="card-desc">{{ book.description }}</p>
+            {% if book.title in saved_titles %}
+                <button class="btn-saved" disabled>✔ Saved to Shelf</button>
+            {% else %}
+                <form class="save-form" action="/save" method="POST">
+                    <input type="hidden" name="title"  value="{{ book.title }}">
+                    <input type="hidden" name="author" value="{{ book.author }}">
+                    <input type="hidden" name="mood"   value="{{ mood }}">
+                    <input type="hidden" name="genre"     value="{{ book.genre }}">
+                    <input type="hidden" name="image_url" value="{{ book.image_url }}">
+                    <button type="submit" class="btn-save">
+                        <span class="material-symbols-outlined" style="font-size:0.9rem; font-variation-settings:'FILL' 1;">bookmark_add</span>
+                        Save to Shelf
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        {# ── CARD 4 ── #}
+        {% elif loop.index == 4 %}
+        <div class="card card-4 wobbly">
+            <div class="card-header-row">
+                <span class="rank-pill">#4</span>
+                {% if book.similarity is defined %}<span class="match-text gold">{{ book.similarity }}% Match</span>{% endif %}
+            </div>
+            <img class="img-sq" src="{{ book.image_url }}" alt="{{ book.title }} cover">
+            <h4 class="card-title">{{ book.title }}</h4>
+            <p class="card-author">{{ book.author }}</p>
+            <p class="card-desc">{{ book.description }}</p>
+            {% if book.title in saved_titles %}
+                <button class="btn-saved" disabled>✔ Saved to Shelf</button>
+            {% else %}
+                <form class="save-form" action="/save" method="POST">
+                    <input type="hidden" name="title"  value="{{ book.title }}">
+                    <input type="hidden" name="author" value="{{ book.author }}">
+                    <input type="hidden" name="mood"   value="{{ mood }}">
+                    <input type="hidden" name="genre"     value="{{ book.genre }}">
+                    <input type="hidden" name="image_url" value="{{ book.image_url }}">
+                    <button type="submit" class="btn-save">
+                        <span class="material-symbols-outlined" style="font-size:0.9rem; font-variation-settings:'FILL' 1;">bookmark_add</span>
+                        Save to Shelf
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        {# ── CARD 5 (greyscale hover) ── #}
+        {% elif loop.index == 5 %}
+        <div class="card card-5 wobbly">
+            <div class="card-header-row">
+                <span class="rank-pill">#5</span>
+                {% if book.similarity is defined %}<span class="match-text">{{ book.similarity }}% Match</span>{% endif %}
+            </div>
+            <img class="img-sq-grey" src="{{ book.image_url }}" alt="{{ book.title }} cover">
+            <h4 class="card-title">{{ book.title }}</h4>
+            <p class="card-author">{{ book.author }}</p>
+            <p class="card-desc">{{ book.description }}</p>
+            {% if book.title in saved_titles %}
+                <button class="btn-saved" disabled>✔ Saved to Shelf</button>
+            {% else %}
+                <form class="save-form" action="/save" method="POST">
+                    <input type="hidden" name="title"  value="{{ book.title }}">
+                    <input type="hidden" name="author" value="{{ book.author }}">
+                    <input type="hidden" name="mood"   value="{{ mood }}">
+                    <input type="hidden" name="genre"     value="{{ book.genre }}">
+                    <input type="hidden" name="image_url" value="{{ book.image_url }}">
+                    <button type="submit" class="btn-save">
+                        <span class="material-symbols-outlined" style="font-size:0.9rem; font-variation-settings:'FILL' 1;">bookmark_add</span>
+                        Save to Shelf
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        {# ── CARD 6+: fallback for any extra results ── #}
+        {% else %}
+        <div class="card card-extra wobbly">
+            <div class="card-header-row">
+                <span class="rank-pill">#{{ loop.index }}</span>
+                {% if book.similarity is defined %}<span class="match-text">{{ book.similarity }}% Match</span>{% endif %}
+            </div>
+            <img class="img-sq" src="{{ book.image_url }}" alt="{{ book.title }} cover">
+            <h4 class="card-title">{{ book.title }}</h4>
+            <p class="card-author">{{ book.author }}</p>
+            <p class="card-desc">{{ book.description }}</p>
+            {% if book.title in saved_titles %}
+                <button class="btn-saved" disabled>✔ Saved to Shelf</button>
+            {% else %}
+                <form class="save-form" action="/save" method="POST">
+                    <input type="hidden" name="title"  value="{{ book.title }}">
+                    <input type="hidden" name="author" value="{{ book.author }}">
+                    <input type="hidden" name="mood"   value="{{ mood }}">
+                    <input type="hidden" name="genre"     value="{{ book.genre }}">
+                    <input type="hidden" name="image_url" value="{{ book.image_url }}">
+                    <button type="submit" class="btn-save">
+                        <span class="material-symbols-outlined" style="font-size:0.9rem; font-variation-settings:'FILL' 1;">bookmark_add</span>
+                        Save to Shelf
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% endfor %}
+    </div>
+
+    <!-- Actions -->
+    <div class="more-section">
+        <div class="more-divider"></div>
+        <div class="dot-nav">
+            <span class="d1"></span><span class="d2"></span><span class="d3"></span>
+        </div>
+        <div class="more-actions">
+            <a href="/generate-again" class="btn-action btn-action-primary">
+                <span class="material-symbols-outlined" style="font-size:1.1rem;">auto_stories</span>
+                Generate New Picks
+            </a>
+            <a href="/dashboard" class="btn-action btn-action-ghost">
+                <span class="material-symbols-outlined" style="font-size:1.1rem;">mood</span>
+                Enter New Mood
+            </a>
+        </div>
+    </div>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════
+     FOOTER — matches dashboard.html
+══════════════════════════════════════════════════ -->
+<footer class="footer">
+    <div>
+        <p class="footer-brand">MoodShelf</p>
+        <p class="footer-copy">© 2026 MoodShelf.</p>
+    </div>
+    <ul class="footer-links">
+        <li><a href="#">Privacy</a></li>
+        <li><a href="#">Terms</a></li>
+        <li><a href="#">Support</a></li>
+    </ul>
+</footer>
+
+<!-- FAB → back to Dashboard mood entry (matches dashboard.html) -->
+<a href="/dashboard" class="fab" aria-label="New mood entry">
+    <span class="material-symbols-outlined">edit</span>
+</a>
+
+<!-- Toast notification -->
+<div id="save-toast" style="
+    position: fixed;
+    bottom: 6rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--on-surface);
+    color: var(--background);
+    font-family: var(--font-label);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: var(--radius-full);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+">
+    <span class="material-symbols-outlined" style="font-size:1rem; font-variation-settings:'FILL' 1;">bookmark_added</span>
+    Added to your shelf!
+</div>
+
+<script>
+(function () {
+    /* ── Toast helper ── */
+    function showToast() {
+        const toast = document.getElementById('save-toast');
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(-50%) translateY(0)';
+        clearTimeout(toast._hideTimer);
+        toast._hideTimer = setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(20px)';
+        }, 2500);
+    }
+
+    /* ── AJAX save handler ── */
+    function attachSaveHandlers() {
+        document.querySelectorAll('.save-form').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const btn = form.querySelector('button[type="submit"]');
+                if (!btn || btn.disabled) return;
+
+                // Optimistically disable button while saving
+                btn.disabled = true;
+
+                const formData = new FormData(form);
+
+                fetch('/save', {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData,
+                })
+                .then(function (res) {
+                    if (res.ok) {
+                        // Determine if this is the hero button or a card button
+                        const isHero = btn.classList.contains('btn-save-hero');
+
+                        if (isHero) {
+                            // Replace hero button in-place
+                            const saved = document.createElement('button');
+                            saved.className = 'btn-saved-hero';
+                            saved.disabled = true;
+                            saved.textContent = '✔ Saved to Shelf';
+                            btn.replaceWith(saved);
+                        } else {
+                            // Replace card button in-place
+                            const saved = document.createElement('button');
+                            saved.className = 'btn-saved';
+                            saved.disabled = true;
+                            saved.textContent = '✔ Saved to Shelf';
+                            btn.replaceWith(saved);
+                        }
+
+                        showToast();
+                    } else {
+                        // Re-enable on failure so user can retry
+                        btn.disabled = false;
+                        alert('Could not save. Please try again.');
+                    }
+                })
+                .catch(function () {
+                    btn.disabled = false;
+                    alert('Network error. Please try again.');
+                });
+            });
+        });
+    }
+
+    attachSaveHandlers();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>My Shelf – The MoodShelf</title>
+
+    <!-- Fonts matching the reference design -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,700;0,800;1,800&family=Be+Vietnam+Pro:wght@400;500;600&family=Lexend:wght@300;400;600&display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <style>
+        /* ── Design Tokens ── */
+        :root {
+            --bg:                  #f1f9f1;
+            --surface:             #f1f9f1;
+            --surface-low:         #eaf3eb;
+            --surface-high:        #dae5dc;
+            --surface-highest:     #d4e0d6;
+            --surface-lowest:      #ffffff;
+            --on-surface:          #29302b;
+            --on-surface-variant:  #555d58;
+            --outline:             #717972;
+            --outline-variant:     #a7afa8;
+            --primary:             #aa2c32;
+            --on-primary:          #ffefee;
+            --primary-container:   #ff7574;
+            --secondary:           #006761;
+            --on-secondary:        #befff8;
+            --secondary-container: #7cf6ec;
+            --tertiary:            #6a5b00;
+            --tertiary-container:  #fee56c;
+            --error:               #b02500;
+            --sketch-shadow:       6px 6px 0px 0px #29302b;
+            --sketch-shadow-sm:    4px 4px 0px 0px #29302b;
+            --font-headline:       'Plus Jakarta Sans', sans-serif;
+            --font-body:           'Be Vietnam Pro', sans-serif;
+            --font-label:          'Lexend', sans-serif;
+        }
+
+        /* ── Reset ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ── Base ── */
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg);
+            background-image: radial-gradient(#29302b1a 1px, transparent 1px);
+            background-size: 24px 24px;
+            color: var(--on-surface);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Wobbly border utility ── */
+        .wobbly {
+            border: 2px solid var(--on-surface);
+            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+        }
+
+        /* ── Material Symbols ── */
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-style: normal;
+            line-height: 1;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* ══════════════════════════════
+           NAVBAR — identical to result.html
+        ══════════════════════════════ */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-bottom: 1.5px solid rgba(41,48,43,0.10);
+        }
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+        }
+        .navbar-brand {
+            font-family: var(--font-headline);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+            text-decoration: none;
+        }
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 1.75rem;
+            list-style: none;
+        }
+        .navbar-links a {
+            font-family: var(--font-label);
+            font-size: 0.875rem;
+            color: var(--on-surface);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .navbar-links a:hover,
+        .navbar-links a.active { color: var(--primary); }
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            color: var(--on-surface);
+            font-size: 1.5rem;
+        }
+        .icon-btn:hover { background: var(--surface-highest); }
+        .logout-link {
+            font-family: var(--font-label);
+            font-size: 0.8rem;
+            color: var(--on-surface-variant);
+            text-decoration: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: 9999px;
+            border: 1.5px solid var(--outline-variant);
+            transition: all 0.2s;
+        }
+        .logout-link:hover { border-color: var(--primary); color: var(--primary); }
+
+        /* ══════════════════════════════
+           MAIN
+        ══════════════════════════════ */
+        main {
+            flex-grow: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 48px 24px;
+            position: relative;
+        }
+
+        /* floating doodle icons */
+        .doodle {
+            position: absolute;
+            opacity: 0.12;
+            pointer-events: none;
+            font-size: 6rem;
+            color: var(--primary);
+        }
+        .doodle-tr { top: -8px; right: 32px; transform: rotate(12deg); }
+        .doodle-bl { bottom: 80px; left: -40px; transform: rotate(-12deg); color: var(--secondary); }
+
+        /* ── Page header ── */
+        .page-header { margin-bottom: 52px; }
+        .page-header h1 {
+            font-family: var(--font-headline);
+            font-weight: 800;
+            font-size: clamp(2.6rem, 7vw, 5rem);
+            letter-spacing: -0.03em;
+            color: var(--on-surface);
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+        .page-header .subtitle {
+            font-family: var(--font-label);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--on-surface-variant);
+        }
+
+        /* ══════════════════════════════
+           BENTO CARD GRID
+        ══════════════════════════════ */
+        .shelf-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
+            align-items: start;
+        }
+        @media (max-width: 900px)  { .shelf-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px)  { .shelf-grid { grid-template-columns: 1fr; } }
+
+        /* ── Card ── */
+        .book-card {
+            background: var(--surface-low);
+            box-shadow: var(--sketch-shadow);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: cardIn 0.4s ease both;
+        }
+        .book-card:hover {
+            box-shadow: 2px 2px 0px 0px #29302b;
+            transform: translate(4px, 4px);
+        }
+
+        /* alternate subtle bg tints for variety */
+        .book-card:nth-child(2)  { background: var(--surface-highest); }
+        .book-card:nth-child(3)  { background: var(--surface-lowest); }
+        .book-card:nth-child(4)  { background: var(--surface-high); }
+        .book-card:nth-child(5)  { background: var(--bg); }
+        .book-card:nth-child(6)  { background: var(--surface-low); }
+
+        /* staggered entry animations */
+        .book-card:nth-child(1)  { animation-delay: 0.05s; }
+        .book-card:nth-child(2)  { animation-delay: 0.10s; }
+        .book-card:nth-child(3)  { animation-delay: 0.15s; }
+        .book-card:nth-child(4)  { animation-delay: 0.20s; }
+        .book-card:nth-child(5)  { animation-delay: 0.25s; }
+        .book-card:nth-child(6)  { animation-delay: 0.30s; }
+
+        /* alternating hover tilts */
+        .book-card:nth-child(odd):hover  { transform: translate(4px, 4px) rotate(-1deg); }
+        .book-card:nth-child(even):hover { transform: translate(4px, 4px) rotate(1deg); }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* card top row: index badge + delete */
+        .card-toprow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .index-badge {
+            font-family: var(--font-label);
+            font-size: 0.7rem;
+            font-weight: 400;
+            background: var(--surface-high);
+            border: 1px solid rgba(41,48,43,0.2);
+            border-radius: 9999px;
+            padding: 3px 12px;
+            color: var(--on-surface-variant);
+            letter-spacing: 0.04em;
+        }
+
+        /* delete button */
+        .delete-form { margin: 0; }
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--error);
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            border-radius: 6px;
+            transition: transform 0.15s, background 0.15s;
+        }
+        .delete-btn:hover  { transform: scale(1.15); background: #ffefee; }
+        .delete-btn:active { transform: scale(0.95); }
+
+        /* card body */
+        .card-body { flex-grow: 1; }
+        .book-title {
+            font-family: var(--font-headline);
+            font-weight: 700;
+            font-size: 1.25rem;
+            line-height: 1.2;
+            color: var(--on-surface);
+            margin-bottom: 4px;
+        }
+        .book-author {
+            font-family: var(--font-label);
+            font-size: 0.82rem;
+            color: var(--on-surface-variant);
+            font-style: italic;
+            margin-bottom: 16px;
+        }
+
+        /* mood pill */
+        .mood-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .mood-pill {
+            font-family: var(--font-label);
+            font-size: 0.62rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            border-width: 2px;
+            border-style: solid;
+        }
+        .mood-happy     { background: #fff9c4; color: #8a6d00; border-color: #c8a800; box-shadow: 2px 2px 0 #c8a800; }
+        .mood-sad       { background: #e8eaf6; color: #3949ab; border-color: #3949ab; box-shadow: 2px 2px 0 #3949ab; }
+        .mood-stressed  { background: #fce4ec; color: #c62828; border-color: #c62828; box-shadow: 2px 2px 0 #c62828; }
+        .mood-anxious   { background: #fff3e0; color: #e65100; border-color: #e65100; box-shadow: 2px 2px 0 #e65100; }
+        .mood-calm      { background: #e0f2f1; color: #00695c; border-color: #00695c; box-shadow: 2px 2px 0 #00695c; }
+        .mood-lonely    { background: #f3e5f5; color: #6a1b9a; border-color: #6a1b9a; box-shadow: 2px 2px 0 #6a1b9a; }
+        .mood-tired     { background: #efebe9; color: #4e342e; border-color: #4e342e; box-shadow: 2px 2px 0 #4e342e; }
+        .mood-motivated { background: #e8f5e9; color: #2e7d32; border-color: #2e7d32; box-shadow: 2px 2px 0 #2e7d32; }
+
+        /* card footer */
+        .card-footer {
+            border-top: 2px dashed rgba(41,48,43,0.15);
+            padding-top: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer-label {
+            font-family: var(--font-label);
+            font-size: 0.62rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--on-surface-variant);
+        }
+        .footer-date {
+            font-family: var(--font-headline);
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: var(--on-surface);
+        }
+
+        /* ══════════════════════════════
+           EMPTY STATE
+        ══════════════════════════════ */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 24px;
+        }
+        .empty-icon {
+            font-family: var(--font-headline);
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+        .empty-state p {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--on-surface-variant);
+            margin-bottom: 24px;
+        }
+        .empty-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-headline);
+            font-weight: 700;
+            font-size: 1rem;
+            background: var(--primary);
+            color: var(--on-primary);
+            text-decoration: none;
+            padding: 14px 28px;
+            border: 2px solid var(--on-surface);
+            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            box-shadow: var(--sketch-shadow);
+            transition: box-shadow 0.15s, transform 0.15s;
+        }
+        .empty-cta:hover {
+            box-shadow: 2px 2px 0 var(--on-surface);
+            transform: translate(4px, 4px);
+        }
+
+        /* ══════════════════════════════
+           CTA ROW
+        ══════════════════════════════ */
+        .cta-row {
+            margin-top: 56px;
+            text-align: center;
+        }
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-headline);
+            font-weight: 700;
+            font-size: 1.1rem;
+            background: var(--primary);
+            color: var(--on-primary);
+            text-decoration: none;
+            padding: 16px 36px;
+            border: 2px solid var(--on-surface);
+            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            box-shadow: var(--sketch-shadow);
+            cursor: pointer;
+            transition: box-shadow 0.15s, transform 0.15s;
+        }
+        .cta-btn:hover {
+            box-shadow: 2px 2px 0 var(--on-surface);
+            transform: translate(4px, 4px);
+        }
+        .cta-btn:active { transform: translate(6px, 6px); box-shadow: none; }
+
+        /* ══════════════════════════════
+           FOOTER
+        ══════════════════════════════ */
+        .site-footer {
+            margin-top: 80px;
+            background: var(--surface-low);
+            border-top: 2px dashed var(--on-surface);
+        }
+        .footer-inner {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 40px 48px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .footer-brand {
+            font-family: var(--font-headline);
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--on-surface);
+            margin-bottom: 4px;
+        }
+        .footer-copy {
+            font-family: var(--font-label);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--on-surface);
+            opacity: 0.5;
+        }
+        .footer-nav { display: flex; gap: 32px; }
+        .footer-nav a {
+            font-family: var(--font-label);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--on-surface);
+            opacity: 0.6;
+            text-decoration: none;
+            transition: opacity 0.15s;
+        }
+        .footer-nav a:hover {
+            opacity: 1;
+            text-decoration: underline wavy var(--primary-container);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ══ NAVBAR ══ -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <a href="/dashboard" class="navbar-brand">MoodShelf</a>
+            <ul class="navbar-links">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/analytics">Analytics</a></li>
+                <li><a href="/journal">Journal</a></li>
+                <li><a href="/saved-books" class="active">Saved</a></li>
+            </ul>
+        </div>
+        <div class="navbar-right">
+            <button class="icon-btn" aria-label="Profile">
+                <span class="material-symbols-outlined">account_circle</span>
+            </button>
+            <a href="/logout" class="logout-link">Logout</a>
+        </div>
+    </nav>
+
+    <!-- ══ MAIN ══ -->
+    <main>
+        <!-- floating doodles -->
+        <span class="material-symbols-outlined doodle doodle-tr">menu_book</span>
+        <span class="material-symbols-outlined doodle doodle-bl">eyeglasses</span>
+
+        <!-- page header -->
+        <header class="page-header">
+            <h1>My Shelf</h1>
+            <p class="subtitle">Where your feelings find a home in ink.</p>
+        </header>
+
+        <!-- ── BOOK CARDS ── -->
+        <div class="shelf-grid">
+
+            {% if books %}
+                {% for book in books %}
+                <div class="book-card wobbly">
+
+                    <!-- top row -->
+                    <div class="card-toprow">
+                        <span class="index-badge">#{{ '%02d' % loop.index }}</span>
+                        <form action="/delete-saved" method="POST" class="delete-form">
+                            <input type="hidden" name="title"  value="{{ book[0] }}">
+                            <input type="hidden" name="author" value="{{ book[1] }}">
+                            <button type="submit" class="delete-btn" aria-label="Remove">
+                                <span class="material-symbols-outlined" style="font-size:1.3rem;">delete</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- body -->
+                    <div class="card-body">
+                        <h3 class="book-title">{{ book[0] }}</h3>
+                        <p class="book-author">by {{ book[1] if book[1] and book[1] != 'Unknown' else 'Unknown Author' }}</p>
+                        <div class="mood-tags">
+                            <span class="mood-pill mood-{{ book[2] or 'calm' }}">
+                                {{ (book[2] or 'unknown')|capitalize }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- footer -->
+                    <div class="card-footer">
+                        <span class="footer-label">Saved On</span>
+                        <span class="footer-date">
+                            {{ book[3].strftime("%b %d, %Y") if book[3] else "—" }}
+                        </span>
+                    </div>
+
+                </div>
+                {% endfor %}
+
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🕸️</div>
+                    <p>Your shelf is empty.<br>Start saving books from your recommendations!</p>
+                    <a href="/dashboard" class="empty-cta">
+                        <span class="material-symbols-outlined" style="font-size:1.2rem;">add_circle</span>
+                        Go find a book
+                    </a>
+                </div>
+            {% endif %}
+
+        </div>
+
+        <!-- CTA -->
+        {% if books %}
+        <div class="cta-row">
+            <a href="/dashboard" class="cta-btn">
+                <span class="material-symbols-outlined" style="font-size:1.3rem;">add_circle</span>
+                Sketch a New Mood
+            </a>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- ══ FOOTER ══ -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div>
+                <div class="footer-brand">The MoodShelf</div>
+                <div class="footer-copy">© 2026 The MoodShelf</div>
+            </div>
+            <nav class="footer-nav">
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Support</a>
+                <a href="#">About Us</a>
+            </nav>
+        </div>
+    </footer>
+
+</body>
+</html>

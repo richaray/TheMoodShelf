@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Your Reading Insights – The MoodShelf</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,700;0,800;1,700;1,800&family=Be+Vietnam+Pro:wght@400;500;700&family=Lexend:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+    <style>
+        /* ─── Design Tokens ─────────────────────────────────────────── */
+        :root {
+            --primary:                #aa2c32;
+            --primary-dim:            #992027;
+            --primary-container:      #ff7574;
+            --on-primary:             #ffefee;
+            --on-primary-container:   #4e0009;
+            --secondary:              #006761;
+            --secondary-container:    #7cf6ec;
+            --on-secondary-container: #005c57;
+            --tertiary:               #6a5b00;
+            --tertiary-container:     #fee56c;
+            --on-tertiary-container:  #615300;
+            --background:             #f1f9f1;
+            --surface-container-lowest: #ffffff;
+            --surface-container-low:  #eaf3eb;
+            --surface-container:      #e1ebe2;
+            --surface-container-high: #dae5dc;
+            --surface-container-highest: #d4e0d6;
+            --on-surface:             #29302b;
+            --on-surface-variant:     #555d58;
+            --outline:                #717972;
+            --outline-variant:        #a7afa8;
+
+            --font-headline: 'Plus Jakarta Sans', sans-serif;
+            --font-body:     'Be Vietnam Pro', sans-serif;
+            --font-label:    'Lexend', sans-serif;
+
+            --radius:      1rem;
+            --radius-full: 9999px;
+            --wobbly: 255px 15px 225px 15px / 15px 225px 15px 255px;
+        }
+
+        /* ─── Reset ─────────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--on-surface);
+            background-color: var(--background);
+            background-image: radial-gradient(circle, #d4e0d6 1px, transparent 1px);
+            background-size: 24px 24px;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── Utilities ─────────────────────────────────────────────── */
+        .sketch-border {
+            border: 3px solid var(--on-surface);
+            border-radius: var(--wobbly);
+        }
+        .sketch-shadow  { box-shadow:  8px  8px 0 0 var(--on-surface); }
+        .sketch-shadow2 { box-shadow:  4px  4px 0 0 var(--on-surface); }
+        .sketch-shadow-sm { box-shadow: 3px 3px 0 0 var(--on-surface); }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .wobble-card {
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .wobble-card:hover {
+            transform: rotate(-1deg) scale(1.02);
+            box-shadow: 10px 10px 0 0 var(--on-surface);
+        }
+
+        /* ─── Navbar ────────────────────────────────────────────────── */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--background);
+            border-bottom: 3px solid var(--on-surface);
+            box-shadow: 0 4px 0 0 var(--on-surface);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .navbar-left  { display: flex; align-items: center; gap: 2.5rem; }
+
+        .navbar-brand {
+            font-family: var(--font-headline);
+            font-size: 1.5rem;
+            font-weight: 800;
+            font-style: italic;
+            color: var(--on-surface);
+            text-decoration: none;
+            letter-spacing: -0.03em;
+        }
+
+        .navbar-links { display: flex; gap: 2rem; list-style: none; }
+        .navbar-links a {
+            font-family: var(--font-headline);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--on-surface);
+            text-decoration: none;
+            transition: color 0.2s, transform 0.2s;
+            display: inline-block;
+        }
+        .navbar-links a:hover  { color: var(--primary); transform: rotate(1deg) scale(1.05); }
+        .navbar-links a.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 2px;
+        }
+
+        .navbar-right { display: flex; align-items: center; gap: 1rem; }
+
+        .logout-link {
+            font-family: var(--font-label);
+            font-size: 0.8rem;
+            color: var(--on-surface-variant);
+            text-decoration: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: var(--radius-full);
+            border: 1.5px solid var(--outline-variant);
+            transition: all 0.2s;
+        }
+        .logout-link:hover { border-color: var(--primary); color: var(--primary); }
+
+        .icon-btn {
+            background: none; border: none; cursor: pointer;
+            font-size: 1.75rem;
+            color: var(--primary);
+            transition: transform 0.2s;
+        }
+        .icon-btn:hover { transform: rotate(1deg) scale(1.1); }
+
+        /* ─── Main ──────────────────────────────────────────────────── */
+        .main {
+            max-width: 1150px;
+            margin: 0 auto;
+            padding: 3.5rem 1.5rem 5rem;
+        }
+
+        /* ─── Hero Header ───────────────────────────────────────────── */
+        .hero {
+            position: relative;
+            margin-bottom: 4rem;
+        }
+
+        .hero-deco-top {
+            position: absolute;
+            top: -2.5rem;
+            left: -1rem;
+            font-size: 3.5rem;
+            color: var(--primary);
+            opacity: 0.25;
+            pointer-events: none;
+        }
+
+        .hero-deco-star {
+            position: absolute;
+            top: 0;
+            right: 2.5rem;
+            font-size: 2.5rem;
+            color: var(--tertiary);
+            opacity: 0.4;
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50%       { opacity: 0.7; transform: scale(1.15); }
+        }
+
+        .hero-title {
+            font-family: var(--font-headline);
+            font-size: clamp(3rem, 7vw, 5.5rem);
+            font-weight: 800;
+            color: var(--on-surface);
+            letter-spacing: -0.04em;
+            line-height: 1.05;
+        }
+
+        .hero-title em {
+            font-style: italic;
+            color: var(--primary);
+        }
+
+        .hero-sub {
+            font-family: var(--font-label);
+            font-size: 1rem;
+            color: var(--on-surface-variant);
+            margin-top: 1rem;
+            max-width: 520px;
+            line-height: 1.6;
+        }
+
+        .hero-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.25rem;
+            font-family: var(--font-label);
+            font-size: 0.78rem;
+            color: var(--outline);
+            background: var(--surface-container-low);
+            padding: 0.4rem 1rem;
+            border-radius: var(--radius-full);
+            border: 1.5px solid var(--outline-variant);
+        }
+
+        /* ─── Stat Cards ────────────────────────────────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            padding: 1.75rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .stat-card:nth-child(1) { background: var(--surface-container-low);     transform: rotate(0.5deg); }
+        .stat-card:nth-child(2) { background: var(--surface-container-lowest);  transform: rotate(-0.8deg); }
+        .stat-card:nth-child(3) { background: var(--surface-container-highest); transform: rotate(0.6deg); }
+        .stat-card:nth-child(4) { background: var(--primary); color: var(--on-primary); transform: rotate(-0.5deg); }
+
+        .stat-icon-wrap {
+            width: 3rem;
+            height: 3rem;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.25rem;
+            border: 2px solid var(--on-surface);
+        }
+        .stat-card:nth-child(1) .stat-icon-wrap { background: var(--primary-container); }
+        .stat-card:nth-child(2) .stat-icon-wrap { background: var(--secondary-container); }
+        .stat-card:nth-child(3) .stat-icon-wrap { background: var(--tertiary-container); }
+        .stat-card:nth-child(4) .stat-icon-wrap { background: var(--on-primary); }
+
+        .stat-icon-wrap .material-symbols-outlined {
+            font-size: 1.35rem;
+        }
+        .stat-card:nth-child(1) .stat-icon-wrap .material-symbols-outlined { color: var(--on-primary-container); }
+        .stat-card:nth-child(2) .stat-icon-wrap .material-symbols-outlined { color: var(--on-secondary-container); }
+        .stat-card:nth-child(3) .stat-icon-wrap .material-symbols-outlined { color: var(--on-tertiary-container); }
+        .stat-card:nth-child(4) .stat-icon-wrap .material-symbols-outlined { color: var(--primary); }
+
+        .stat-label {
+            font-family: var(--font-label);
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--on-surface-variant);
+        }
+        .stat-card:nth-child(4) .stat-label { color: var(--on-primary); opacity: 0.8; }
+
+        .stat-number {
+            font-family: var(--font-headline);
+            font-size: 2.75rem;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--on-surface);
+        }
+        .stat-card:nth-child(4) .stat-number {
+            font-size: 1.5rem;
+            color: var(--on-primary);
+        }
+
+        /* ─── Charts Grid ───────────────────────────────────────────── */
+        .charts-row {
+            display: grid;
+            gap: 1.75rem;
+            margin-bottom: 1.75rem;
+        }
+        .charts-row.two-col { grid-template-columns: 1fr 1fr; }
+        .charts-row.one-col { grid-template-columns: 1fr; }
+
+        /* ─── Chart Card ────────────────────────────────────────────── */
+        .chart-card {
+            background: var(--surface-container-lowest);
+            padding: 2rem 2rem 1.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-card:nth-child(odd)  { transform: rotate(0.4deg); }
+        .chart-card:nth-child(even) {
+            transform: rotate(-0.6deg);
+            background: var(--surface-container-low);
+        }
+
+        /* Full-width chart cards stay level */
+        .charts-row.one-col .chart-card { transform: rotate(-0.3deg); }
+
+        .chart-card:hover { transform: rotate(0deg); }
+
+        .chart-header { margin-bottom: 1.5rem; }
+
+        .chart-title {
+            font-family: var(--font-headline);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--on-surface);
+            margin-bottom: 0.3rem;
+        }
+
+        .chart-sub {
+            font-family: var(--font-label);
+            font-size: 0.75rem;
+            color: var(--on-surface-variant);
+        }
+
+        .chart-canvas-wrap { position: relative; }
+        canvas { max-height: 280px; }
+
+        /* ─── Empty State ───────────────────────────────────────────── */
+        .empty-chart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 3rem 1rem;
+            color: var(--outline-variant);
+            font-family: var(--font-label);
+            font-size: 0.85rem;
+            text-align: center;
+            border: 2px dashed var(--outline-variant);
+            border-radius: var(--radius);
+        }
+        .empty-chart .material-symbols-outlined { font-size: 2.25rem; }
+
+        /* ─── Decorative Doodle Row ─────────────────────────────────── */
+        .doodle-row {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 3rem 0;
+            opacity: 0.18;
+            pointer-events: none;
+        }
+        .doodle-row .material-symbols-outlined { font-size: 3.5rem; color: var(--on-surface); }
+        .doodle-row .material-symbols-outlined:nth-child(2) { font-size: 2rem; }
+        .doodle-row .material-symbols-outlined:nth-child(4) { font-size: 2.5rem; }
+
+        /* ─── Footer ────────────────────────────────────────────────── */
+        .footer {
+            background: var(--surface-container-low);
+            border-top: 3px solid var(--on-surface);
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2.5rem 3rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-left { display: flex; flex-direction: column; gap: 0.25rem; }
+
+        .footer-brand {
+            font-family: var(--font-headline);
+            font-size: 1.1rem;
+            font-weight: 800;
+            font-style: italic;
+            color: var(--on-surface);
+        }
+
+        .footer-copy {
+            font-family: var(--font-label);
+            font-size: 0.72rem;
+            color: var(--on-surface-variant);
+            letter-spacing: 0.04em;
+        }
+
+        .footer-links { display: flex; gap: 2rem; list-style: none; }
+        .footer-links a {
+            font-family: var(--font-label);
+            font-size: 0.78rem;
+            color: var(--on-surface-variant);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: var(--primary); text-decoration: underline dotted; }
+
+        /* ─── Entrance Animations ───────────────────────────────────── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero        { animation: fadeUp 0.5s ease 0.05s both; }
+        .stats-grid  { animation: fadeUp 0.5s ease 0.15s both; }
+        .charts-row  { animation: fadeUp 0.5s ease 0.25s both; }
+
+        /* ─── Responsive ────────────────────────────────────────────── */
+        @media (max-width: 900px) {
+            .charts-row.two-col { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 700px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .navbar-links { display: none; }
+            .hero-deco-star { display: none; }
+            .footer { flex-direction: column; align-items: flex-start; }
+        }
+        @media (max-width: 400px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── Navbar ─────────────────────────────────────────────────── -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <a href="/dashboard" class="navbar-brand">The MoodShelf</a>
+            <ul class="navbar-links">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/analytics" class="active">Analytics</a></li>
+                <li><a href="/journal">Journal</a></li>
+                <li><a href="/saved-books">Saved</a></li>
+            </ul>
+        </div>
+        <div class="navbar-right">
+            <button class="icon-btn" aria-label="Profile">
+                <span class="material-symbols-outlined">account_circle</span>
+            </button>
+            <a href="/logout" class="logout-link">Logout</a>
+        </div>
+    </nav>
+
+    <!-- ── Main ───────────────────────────────────────────────────── -->
+    <main class="main">
+
+        <!-- Hero Header -->
+        <header class="hero">
+            <span class="material-symbols-outlined hero-deco-top">draw</span>
+            <span class="material-symbols-outlined hero-deco-star icon-fill">star</span>
+
+            <h1 class="hero-title">
+                Your Reading<br/><em>Insights</em>
+            </h1>
+            <p class="hero-sub">
+                A visual journey through the stories that moved you and the moods you've collected in your shelf.
+            </p>
+            <span class="hero-meta">
+                <span class="material-symbols-outlined" style="font-size:1rem;">calendar_today</span>
+                Member since {{ member_since }}
+            </span>
+        </header>
+
+        <!-- ── Stat Cards ─────────────────────────────────────────── -->
+        <div class="stats-grid">
+
+            <div class="stat-card sketch-border sketch-shadow wobble-card">
+                <div class="stat-icon-wrap">
+                    <span class="material-symbols-outlined icon-fill">mood</span>
+                </div>
+                <span class="stat-label">Mood Checks</span>
+                <span class="stat-number">{{ total_moods }}</span>
+            </div>
+
+            <div class="stat-card sketch-border sketch-shadow wobble-card">
+                <div class="stat-icon-wrap">
+                    <span class="material-symbols-outlined icon-fill">auto_stories</span>
+                </div>
+                <span class="stat-label">Books Saved</span>
+                <span class="stat-number">{{ total_saved }}</span>
+            </div>
+
+            <div class="stat-card sketch-border sketch-shadow wobble-card">
+                <div class="stat-icon-wrap">
+                    <span class="material-symbols-outlined icon-fill">edit_note</span>
+                </div>
+                <span class="stat-label">Journal Entries</span>
+                <span class="stat-number">{{ total_journal }}</span>
+            </div>
+
+            <div class="stat-card sketch-border sketch-shadow wobble-card">
+                <div class="stat-icon-wrap">
+                    <span class="material-symbols-outlined icon-fill">sentiment_very_satisfied</span>
+                </div>
+                <span class="stat-label">Most Frequent</span>
+                <span class="stat-number">{{ top_mood.capitalize() }}</span>
+            </div>
+
+        </div>
+
+        <!-- ── Row 1: Mood Donut + Emotion Bar ───────────────────── -->
+        <div class="charts-row two-col">
+
+            <div class="chart-card sketch-border sketch-shadow2">
+                <div class="chart-header">
+                    <p class="chart-title">Mood Distribution</p>
+                    <p class="chart-sub">How your moods break down across all sessions</p>
+                </div>
+                {% if mood_dist %}
+                <div class="chart-canvas-wrap">
+                    <canvas id="moodDonut"></canvas>
+                </div>
+                {% else %}
+                <div class="empty-chart">
+                    <span class="material-symbols-outlined">pie_chart</span>
+                    No mood data yet.
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="chart-card sketch-border sketch-shadow2">
+                <div class="chart-header">
+                    <p class="chart-title">Emotion Breakdown</p>
+                    <p class="chart-sub">Raw emotion labels detected by the AI model</p>
+                </div>
+                {% if emotion_dist %}
+                <div class="chart-canvas-wrap">
+                    <canvas id="emotionBar"></canvas>
+                </div>
+                {% else %}
+                <div class="empty-chart">
+                    <span class="material-symbols-outlined">bar_chart</span>
+                    No emotion data yet.
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- ── Row 2: Activity Line (full width) ─────────────────── -->
+        <div class="charts-row one-col">
+            <div class="chart-card sketch-border sketch-shadow2">
+                <div class="chart-header">
+                    <p class="chart-title">Activity — Last 30 Days</p>
+                    <p class="chart-sub">Number of mood checks per day</p>
+                </div>
+                {% if activity_labels %}
+                <div class="chart-canvas-wrap">
+                    <canvas id="activityLine"></canvas>
+                </div>
+                {% else %}
+                <div class="empty-chart">
+                    <span class="material-symbols-outlined">show_chart</span>
+                    No activity in the last 30 days.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ── Row 3: Saved by Mood Bar (full width) ─────────────── -->
+        <div class="charts-row one-col">
+            <div class="chart-card sketch-border sketch-shadow2">
+                <div class="chart-header">
+                    <p class="chart-title">Books Saved by Mood</p>
+                    <p class="chart-sub">Which moods led you to save the most books</p>
+                </div>
+                {% if saved_by_mood %}
+                <div class="chart-canvas-wrap">
+                    <canvas id="savedBar"></canvas>
+                </div>
+                {% else %}
+                <div class="empty-chart">
+                    <span class="material-symbols-outlined">bookmarks</span>
+                    No saved books yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Decorative doodle row -->
+        <div class="doodle-row" aria-hidden="true">
+            <span class="material-symbols-outlined">cloud</span>
+            <span class="material-symbols-outlined">flare</span>
+            <span class="material-symbols-outlined">menu_book</span>
+            <span class="material-symbols-outlined">ink_pen</span>
+            <span class="material-symbols-outlined">heart_plus</span>
+        </div>
+
+    </main>
+
+    <!-- ── Footer ─────────────────────────────────────────────────── -->
+    <footer class="footer">
+        <div class="footer-left">
+            <span class="footer-brand">The MoodShelf</span>
+            <p class="footer-copy">© 2026 The MoodShelf.</p>
+        </div>
+        <ul class="footer-links">
+            <li><a href="#">About</a></li>
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Feedback</a></li>
+            <li><a href="#">Contact</a></li>
+        </ul>
+    </footer>
+
+    <!-- ── Chart.js ───────────────────────────────────────────────── -->
+    <script>
+        // ── Mood colour palette ──────────────────────────────────────
+        const MOOD_COLORS = {
+            happy:     '#f6c90e',
+            sad:       '#7986cb',
+            stressed:  '#ef5350',
+            calm:      '#4db6ac',
+            anxious:   '#ffa726',
+            lonely:    '#ab47bc',
+            tired:     '#a1887f',
+            motivated: '#66bb6a',
+        };
+        const FALLBACK_COLORS = [
+            '#aa2c32','#006761','#6a5b00','#7986cb',
+            '#ffa726','#4db6ac','#ab47bc','#a1887f'
+        ];
+        function colorFor(label, i) {
+            return MOOD_COLORS[label.toLowerCase()] || FALLBACK_COLORS[i % FALLBACK_COLORS.length];
+        }
+
+        // ── Shared Chart.js defaults ─────────────────────────────────
+        Chart.defaults.font.family  = "'Lexend', sans-serif";
+        Chart.defaults.font.size    = 12;
+        Chart.defaults.color        = '#555d58';
+        Chart.defaults.plugins.legend.labels.usePointStyle = true;
+        Chart.defaults.plugins.legend.labels.padding       = 18;
+
+        const gridColor = 'rgba(41,48,43,0.06)';
+
+        // ── 1. Mood Donut ────────────────────────────────────────────
+        {% if mood_dist %}
+        (function () {
+            const labels = {{ mood_dist | map(attribute=0) | list | tojson }};
+            const data   = {{ mood_dist | map(attribute=1) | list | tojson }};
+            const colors = labels.map((l, i) => colorFor(l, i));
+            const displayLabels = labels.map(l => l.charAt(0).toUpperCase() + l.slice(1));
+
+            new Chart(document.getElementById('moodDonut'), {
+                type: 'doughnut',
+                data: {
+                    labels: displayLabels,
+                    datasets: [{
+                        data,
+                        backgroundColor: colors,
+                        borderColor: '#f1f9f1',
+                        borderWidth: 3,
+                        hoverOffset: 8,
+                    }]
+                },
+                options: {
+                    cutout: '64%',
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        })();
+        {% endif %}
+
+        // ── 2. Emotion horizontal bar ────────────────────────────────
+        {% if emotion_dist %}
+        (function () {
+            const labels = {{ emotion_dist | map(attribute=0) | list | tojson }};
+            const data   = {{ emotion_dist | map(attribute=1) | list | tojson }};
+            const colors = FALLBACK_COLORS.slice(0, labels.length);
+            const displayLabels = labels.map(l => l.charAt(0).toUpperCase() + l.slice(1));
+
+            new Chart(document.getElementById('emotionBar'), {
+                type: 'bar',
+                data: {
+                    labels: displayLabels,
+                    datasets: [{
+                        data,
+                        backgroundColor: colors,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            grid: { color: gridColor },
+                            ticks: { stepSize: 1 }
+                        },
+                        y: { grid: { display: false } }
+                    }
+                }
+            });
+        })();
+        {% endif %}
+
+        // ── 3. Activity line ─────────────────────────────────────────
+        {% if activity_labels %}
+        (function () {
+            const labels = {{ activity_labels | tojson }};
+            const data   = {{ activity_data   | tojson }};
+
+            new Chart(document.getElementById('activityLine'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Mood Checks',
+                        data,
+                        borderColor: '#aa2c32',
+                        backgroundColor: 'rgba(170,44,50,0.08)',
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#aa2c32',
+                        pointBorderColor: '#f1f9f1',
+                        pointBorderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { maxTicksLimit: 10 }
+                        },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        })();
+        {% endif %}
+
+        // ── 4. Saved books by mood bar ───────────────────────────────
+        {% if saved_by_mood %}
+        (function () {
+            const labels = {{ saved_by_mood | map(attribute=0) | list | tojson }};
+            const data   = {{ saved_by_mood | map(attribute=1) | list | tojson }};
+            const colors = labels.map((l, i) => colorFor(l, i));
+            const displayLabels = labels.map(l => l.charAt(0).toUpperCase() + l.slice(1));
+
+            new Chart(document.getElementById('savedBar'), {
+                type: 'bar',
+                data: {
+                    labels: displayLabels,
+                    datasets: [{
+                        data,
+                        backgroundColor: colors,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        })();
+        {% endif %}
+    </script>
+
+</body>
+</html>

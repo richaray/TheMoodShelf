@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>My Journal – The MoodShelf</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Be+Vietnam+Pro:wght@400;500;700&family=Lexend:wght@300;400;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+
+    <style>
+        /* ─── Design Tokens ─────────────────────────────────────────── */
+        :root {
+            --primary:                #aa2c32;
+            --primary-dim:            #992027;
+            --primary-container:      #ff7574;
+            --on-primary:             #ffefee;
+            --on-primary-container:   #4e0009;
+            --secondary:              #006761;
+            --secondary-container:    #7cf6ec;
+            --on-secondary-container: #005c57;
+            --tertiary:               #6a5b00;
+            --tertiary-container:     #fee56c;
+            --on-tertiary-container:  #615300;
+            --background:             #f1f9f1;
+            --surface:                #f1f9f1;
+            --surface-container-lowest: #ffffff;
+            --surface-container-low:  #eaf3eb;
+            --surface-container:      #e1ebe2;
+            --surface-container-high: #dae5dc;
+            --surface-container-highest: #d4e0d6;
+            --surface-variant:        #d4e0d6;
+            --on-surface:             #29302b;
+            --on-surface-variant:     #555d58;
+            --outline:                #717972;
+            --outline-variant:        #a7afa8;
+
+            --font-headline: 'Plus Jakarta Sans', sans-serif;
+            --font-body:     'Be Vietnam Pro', sans-serif;
+            --font-label:    'Lexend', sans-serif;
+
+            --radius:      1rem;
+            --radius-lg:   2rem;
+            --radius-full: 9999px;
+
+            /* Wobbly border radius — matches the reference design */
+            --wobbly: 255px 15px 225px 15px / 15px 225px 15px 255px;
+        }
+
+        /* ─── Reset ─────────────────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--on-surface);
+            background-color: var(--background);
+            background-image: radial-gradient(#d4e0d6 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ─── Shared Utilities ──────────────────────────────────────── */
+        .wobbly-border {
+            border: 2px solid var(--on-surface);
+            border-radius: var(--wobbly);
+        }
+
+        .sketch-shadow  { box-shadow: 8px 8px 0 0 var(--on-surface); }
+        .sketch-shadow2 { box-shadow: 4px 4px 0 0 var(--on-surface); }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+            line-height: 1;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* ─── Navbar ────────────────────────────────────────────────── */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--background);
+            border-bottom: 2px solid var(--on-surface);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .navbar-left  { display: flex; align-items: center; gap: 2.5rem; }
+
+        .navbar-brand {
+            font-family: var(--font-headline);
+            font-size: 1.4rem;
+            font-weight: 800;
+            font-style: italic;
+            color: var(--on-surface);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+
+        .navbar-links { display: flex; gap: 1.5rem; list-style: none; }
+        .navbar-links a {
+            font-family: var(--font-headline);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--on-surface);
+            text-decoration: none;
+            opacity: 0.65;
+            transition: opacity 0.2s, color 0.2s;
+        }
+        .navbar-links a:hover   { opacity: 1; color: var(--primary); }
+        .navbar-links a.active  {
+            opacity: 1;
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 3px;
+        }
+
+        .navbar-right { display: flex; align-items: center; gap: 1rem; }
+
+        .logout-link {
+            font-family: var(--font-label);
+            font-size: 0.8rem;
+            color: var(--on-surface-variant);
+            text-decoration: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: var(--radius-full);
+            border: 1.5px solid var(--outline-variant);
+            transition: all 0.2s;
+        }
+        .logout-link:hover { border-color: var(--primary); color: var(--primary); }
+
+        .icon-btn {
+            background: none; border: none; cursor: pointer;
+            display: flex; align-items: center;
+            color: var(--on-surface); font-size: 1.75rem;
+            transition: transform 0.2s;
+        }
+        .icon-btn:hover { transform: scale(1.1); }
+
+        /* ─── Page Layout ───────────────────────────────────────────── */
+        .main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 5rem;
+        }
+
+        /* ─── Page Header ───────────────────────────────────────────── */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+        }
+
+        .page-header-left { display: flex; align-items: center; gap: 1rem; }
+
+        .page-title {
+            font-family: var(--font-headline);
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 800;
+            font-style: italic;
+            letter-spacing: -0.03em;
+            color: var(--on-surface);
+        }
+
+        .page-title-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            transform: rotate(-12deg);
+            display: inline-block;
+        }
+
+        .page-header-deco {
+            font-size: 4rem;
+            color: var(--on-surface);
+            opacity: 0.12;
+            transform: rotate(12deg);
+            display: inline-block;
+        }
+
+        /* ─── Two Column Grid ───────────────────────────────────────── */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        .col-main  { display: flex; flex-direction: column; gap: 3rem; }
+        .col-aside { display: flex; flex-direction: column; gap: 3rem; }
+
+        /* ─── New Entry Card ────────────────────────────────────────── */
+        .new-entry-card {
+            background: var(--surface-container-lowest);
+            padding: 2rem;
+            position: relative;
+        }
+
+        .new-entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .new-entry-title {
+            font-family: var(--font-headline);
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--on-surface);
+        }
+
+        .journal-textarea {
+            width: 100%;
+            height: 11rem;
+            padding: 1rem;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--on-surface);
+            resize: none;
+            line-height: 1.75;
+        }
+        .journal-textarea::placeholder { color: var(--outline-variant); }
+
+        .new-entry-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1.5px dashed var(--outline-variant);
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+            color: var(--on-primary);
+            border: 2px solid var(--on-surface);
+            box-shadow: 4px 4px 0 0 var(--on-surface);
+            padding: 0.75rem 2rem;
+            border-radius: var(--radius);
+            font-family: var(--font-headline);
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .save-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 0 var(--on-surface);
+        }
+        .save-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 0 var(--on-surface);
+        }
+
+        /* ─── Section Label ─────────────────────────────────────────── */
+        .section-label {
+            font-family: var(--font-label);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--outline);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1.5px;
+            background: rgba(41,48,43,0.12);
+        }
+
+        /* ─── Journal Entry Cards ───────────────────────────────────── */
+        .entries-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .entry-card {
+            background: var(--surface-container-low);
+            padding: 1.5rem;
+            transition: transform 0.25s;
+            position: relative;
+        }
+        .entry-card:nth-child(odd)  { transform: rotate(0.8deg);  }
+        .entry-card:nth-child(even) { transform: rotate(-0.7deg); background: var(--surface-container-highest); }
+        .entry-card:hover { transform: rotate(0deg) translateY(-3px); }
+
+        .entry-text {
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--on-surface);
+            margin-bottom: 1rem;
+            /* Clamp long entries to keep cards consistent height */
+            display: -webkit-box;
+            -webkit-line-clamp: 5;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .entry-meta {
+            font-family: var(--font-label);
+            font-size: 0.75rem;
+            color: var(--outline);
+        }
+
+        /* ─── Empty State ───────────────────────────────────────────── */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: var(--outline-variant);
+            font-family: var(--font-label);
+            font-size: 0.9rem;
+            border: 2px dashed var(--outline-variant);
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .empty-state .material-symbols-outlined { font-size: 2.5rem; }
+
+        /* ─── Mood Pill ─────────────────────────────────────────────── */
+        .mood-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.2rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-family: var(--font-label);
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-left: 0.5rem;
+            border: 2px solid var(--on-surface);
+        }
+        .mood-happy     { background: #fff9c4; color: #8a6d00; }
+        .mood-sad       { background: #e8eaf6; color: #3949ab; }
+        .mood-stressed  { background: #fce4ec; color: #c62828; }
+        .mood-anxious   { background: #fff3e0; color: #e65100; }
+        .mood-calm      { background: #e0f2f1; color: #00695c; }
+        .mood-lonely    { background: #f3e5f5; color: #6a1b9a; }
+        .mood-tired     { background: #efebe9; color: #4e342e; }
+        .mood-motivated { background: #e8f5e9; color: #2e7d32; }
+
+        /* ─── Sidebar: Mood Feed ────────────────────────────────────── */
+        .mood-feed { display: flex; flex-direction: column; gap: 0.875rem; }
+
+        .mood-feed-item {
+            background: var(--surface-container-lowest);
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            cursor: default;
+            transition: transform 0.2s;
+        }
+        .mood-feed-item:hover { transform: translateX(4px); }
+
+        .mood-feed-text { min-width: 0; }
+
+        .mood-feed-time {
+            font-family: var(--font-label);
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--outline);
+            margin-bottom: 0.25rem;
+        }
+
+        .mood-feed-snippet {
+            font-family: var(--font-headline);
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--on-surface);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 170px;
+        }
+
+        .mood-feed-pill {
+            flex-shrink: 0;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-family: var(--font-label);
+            font-size: 0.68rem;
+            font-weight: 700;
+            border: 2px solid var(--on-surface);
+            white-space: nowrap;
+        }
+
+        /* ─── Sidebar: Tip Banner ───────────────────────────────────── */
+        .tip-banner {
+            background: var(--surface-container-high);
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius);
+            border-left: 4px solid var(--primary);
+        }
+        .tip-banner p {
+            font-family: var(--font-label);
+            font-size: 0.78rem;
+            font-style: italic;
+            color: var(--on-surface-variant);
+            line-height: 1.6;
+        }
+
+        /* ─── Footer ────────────────────────────────────────────────── */
+        .footer {
+            margin-top: 5rem;
+            border-top: 2px dashed var(--on-surface);
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2.5rem 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .footer-copy {
+            font-family: var(--font-label);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--on-surface-variant);
+        }
+
+        .footer-links { display: flex; gap: 2rem; list-style: none; }
+        .footer-links a {
+            font-family: var(--font-label);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--on-surface-variant);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: var(--primary); font-style: italic; }
+
+        /* ─── FAB ───────────────────────────────────────────────────── */
+        .fab {
+            position: fixed;
+            bottom: 2rem; right: 2rem;
+            z-index: 50;
+            width: 3.5rem; height: 3.5rem;
+            border-radius: var(--radius-full);
+            background: var(--on-surface);
+            color: var(--background);
+            border: none;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.75rem;
+            box-shadow: 4px 4px 0 0 var(--primary);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .fab:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 0 var(--primary);
+        }
+        .fab:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 0 var(--primary);
+        }
+
+        /* ─── Entrance Animation ─────────────────────────────────────── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .main > * { animation: fadeUp 0.45s ease both; }
+        .main > *:nth-child(1) { animation-delay: 0.05s; }
+        .main > *:nth-child(2) { animation-delay: 0.15s; }
+
+        /* ─── Responsive ────────────────────────────────────────────── */
+        @media (max-width: 900px) {
+            .content-grid { grid-template-columns: 1fr; }
+            .col-aside { order: -1; }
+            .mood-feed { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+        }
+        @media (max-width: 600px) {
+            .navbar-links { display: none; }
+            .entries-grid { grid-template-columns: 1fr; }
+            .mood-feed { grid-template-columns: 1fr; }
+            .page-header-deco { display: none; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── Navbar ─────────────────────────────────────────────────── -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <a href="/dashboard" class="navbar-brand">The MoodShelf</a>
+            <ul class="navbar-links">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/analytics">Analytics</a></li>
+                <li><a href="/journal" class="active">Journal</a></li>
+                <li><a href="/saved-books">Saved</a></li>
+            </ul>
+        </div>
+        <div class="navbar-right">
+            <button class="icon-btn" aria-label="Profile">
+                <span class="material-symbols-outlined">account_circle</span>
+            </button>
+            <a href="/logout" class="logout-link">Logout</a>
+        </div>
+    </nav>
+
+    <!-- ── Main ───────────────────────────────────────────────────── -->
+    <main class="main">
+
+        <!-- Page Header -->
+        <header class="page-header">
+            <div class="page-header-left">
+                <h1 class="page-title">My Journal</h1>
+                <span class="material-symbols-outlined page-title-icon">menu_book</span>
+            </div>
+            <span class="material-symbols-outlined page-header-deco">cloud</span>
+        </header>
+
+        <!-- Two-Column Grid -->
+        <div class="content-grid">
+
+            <!-- ── Left: Main Column ───────────────────────────────── -->
+            <div class="col-main">
+
+                <!-- New Entry -->
+                <section>
+                    <div class="new-entry-card wobbly-border sketch-shadow">
+                        <div class="new-entry-header">
+                            <h2 class="new-entry-title">Write something new...</h2>
+                            <span class="material-symbols-outlined" style="color:var(--on-surface-variant);">edit_note</span>
+                        </div>
+                        <form action="/journal/add" method="POST">
+                            <textarea
+                                class="journal-textarea"
+                                name="content"
+                                placeholder="How was your day? Let's doodle some thoughts..."
+                                required
+                            ></textarea>
+                            <div class="new-entry-footer">
+                                <button type="submit" class="save-btn">Save Entry</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Personal Notes -->
+                <section>
+                    <p class="section-label">
+                        <span class="material-symbols-outlined" style="font-size:1rem;">stylus_note</span>
+                        Personal Notes
+                    </p>
+
+                    <div class="entries-grid">
+                        {% if journal_entries %}
+                            {% for entry in journal_entries %}
+                            <div class="entry-card wobbly-border sketch-shadow2">
+                                <p class="entry-text">{{ entry[0] }}</p>
+                                <span class="entry-meta">
+                                    {{ entry[1].strftime("%d %b %Y, %I:%M %p") if entry[1] else "—" }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <span class="material-symbols-outlined">auto_stories</span>
+                                No personal notes yet. Write your first entry above!
+                            </div>
+                        {% endif %}
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- ── Right: Sidebar ──────────────────────────────────── -->
+            <aside class="col-aside">
+
+                <!-- Mood Prompts Feed -->
+                <section>
+                    <p class="section-label">
+                        <span class="material-symbols-outlined" style="font-size:1rem;">analytics</span>
+                        Mood Prompts
+                    </p>
+
+                    {% if mood_entries %}
+                        <div class="mood-feed">
+                            {% for entry in mood_entries %}
+                            <div class="mood-feed-item wobbly-border">
+                                <div class="mood-feed-text">
+                                    <p class="mood-feed-time">
+                                        {{ entry[1].strftime("%d %b %Y") if entry[1] else "—" }}
+                                    </p>
+                                    <p class="mood-feed-snippet" title="{{ entry[0] }}">
+                                        {{ entry[0] }}
+                                    </p>
+                                </div>
+                                <span class="mood-feed-pill mood-{{ entry[2] }}">
+                                    {{ entry[2].capitalize() }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="tip-banner" style="margin-top:1.25rem;">
+                            <p>Auto-logged from your dashboard check-ins and daily interactions.</p>
+                        </div>
+
+                    {% else %}
+                        <div class="empty-state">
+                            <span class="material-symbols-outlined">mood</span>
+                            No mood entries yet. Head to the dashboard and tell us how you feel!
+                        </div>
+                    {% endif %}
+                </section>
+
+            </aside>
+
+        </div><!-- /content-grid -->
+
+    </main>
+
+    <!-- ── Footer ─────────────────────────────────────────────────── -->
+    <footer class="footer">
+        <p class="footer-copy">© 2026 The MoodShelf.</p>
+        <ul class="footer-links">
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Terms</a></li>
+        </ul>
+    </footer>
+
+    <!-- ── FAB — scroll to new entry ─────────────────────────────── -->
+    <button class="fab" aria-label="New entry"
+        onclick="document.querySelector('.journal-textarea').focus(); document.querySelector('.new-entry-card').scrollIntoView({behavior:'smooth'})">
+        <span class="material-symbols-outlined">add</span>
+    </button>
+
+</body>
+</html>

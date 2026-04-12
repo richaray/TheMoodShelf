@@ -1,0 +1,18 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment / secrets
+.env
+
+# Virtual environment (if you have one)
+venv/
+env/
+
+# Dataset (large file, don't push to GitHub)
+*.csv
+
+# OS junk
+.DS_Store
+Thumbs.db
