@@ -6,13 +6,11 @@ __pycache__/
 # Environment / secrets
 .env
 
-# Virtual environment (if you have one)
+# Virtual environment
 venv/
 env/
-
-# Dataset (large file, don't push to GitHub)
-*.csv
 
 # OS junk
 .DS_Store
 Thumbs.db
+TheMoodShelf/

@@ -47,14 +47,13 @@ app.secret_key = os.environ.get("MOODSHELF_SECRET_KEY", "moodshelf-dev-secret-ke
 # ==============================================================
 
 def get_db_connection():
+    """Create and return a fresh DB connection."""
     try:
         conn = mysql.connector.connect(
-            host=os.environ.get("MOODSHELF_DB_HOST", "localhost"),
-            port=int(os.environ.get("MOODSHELF_DB_PORT", 3306)),
-            user=os.environ.get("MOODSHELF_DB_USER", "root"),
+            host="localhost",
+            user="root",
             password=os.environ.get("MOODSHELF_DB_PASSWORD"),
-            database=os.environ.get("MOODSHELF_DB_NAME", "mood_shelf"),
-            ssl_disabled=False        # ← add this line
+            database="mood_shelf"
         )
         return conn
     except Error as e:
@@ -190,8 +189,8 @@ def clean_text(text: str) -> str:
 # BOOK DATASET
 # ==============================================================
 
-csv_path = os.environ.get("BOOK_CSV_PATH", "Book_Dataset_1.csv")
-books = pd.read_csv(csv_path, encoding="latin1")
+print("[DATA] Loading book dataset...")
+books = pd.read_csv("Book_Dataset_1.csv", encoding="latin1")
 
 # Keep only the columns we need; rename for consistency
 books = books[["Title", "Category", "Book_Desc", "Image_Link", "Stars", "Number_of_reviews"]].copy()
@@ -910,6 +909,4 @@ def logout():
 # ==============================================================
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 7860))
-    debug = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    app.run(debug=True)
