@@ -47,15 +47,31 @@ app.secret_key = os.environ.get("MOODSHELF_SECRET_KEY", "moodshelf-dev-secret-ke
 # ==============================================================
 
 def get_db_connection():
+    conn_kwargs = dict(
+        host=os.environ.get("MOODSHELF_DB_HOST", "localhost"),
+        port=int(os.environ.get("MOODSHELF_DB_PORT", 3306)),
+        user=os.environ.get("MOODSHELF_DB_USER", "root"),
+        password=os.environ.get("MOODSHELF_DB_PASSWORD"),
+        database=os.environ.get("MOODSHELF_DB_NAME", "mood_shelf"),
+        ssl_disabled=False,
+    )
+
+    # Managed MySQL-compatible hosts (e.g. TiDB Cloud Serverless) require a
+    # verified TLS connection. If a CA bundle is configured and present on
+    # disk, connect with full certificate + hostname verification. Falls
+    # back to a plain SSL-opportunistic connection (old behaviour) when no
+    # CA is configured, so local/dev MySQL setups keep working unchanged.
+    ssl_ca = os.environ.get("MOODSHELF_DB_SSL_CA")
+    if ssl_ca and os.path.isfile(ssl_ca):
+        conn_kwargs["ssl_ca"] = ssl_ca
+        conn_kwargs["ssl_verify_cert"] = True
+        conn_kwargs["ssl_verify_identity"] = True
+    elif ssl_ca:
+        print(f"[DB WARNING] MOODSHELF_DB_SSL_CA={ssl_ca} but file not found; "
+              f"connecting without certificate verification.")
+
     try:
-        conn = mysql.connector.connect(
-            host=os.environ.get("MOODSHELF_DB_HOST", "localhost"),
-            port=int(os.environ.get("MOODSHELF_DB_PORT", 3306)),
-            user=os.environ.get("MOODSHELF_DB_USER", "root"),
-            password=os.environ.get("MOODSHELF_DB_PASSWORD"),
-            database=os.environ.get("MOODSHELF_DB_NAME", "mood_shelf"),
-            ssl_disabled=False        # ← add this line
-        )
+        conn = mysql.connector.connect(**conn_kwargs)
         return conn
     except Error as e:
         print(f"[DB ERROR] Could not connect: {e}")
